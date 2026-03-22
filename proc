@@ -1,0 +1,32 @@
+grep -c ^processor /proc/cpuinfo
+
+grep -E "MemTotal|MemFree" /proc/meminfo
+awk '/MemTotal/ {total=$2} /MemFree/ {free=$2} END {print "Fre Fraction="free/total}' /proc/meminfo
+
+ps -e --no-header | wc -l
+
+grep "procs_running" /proc/stat
+grep "procs_blocked" /proc/stat
+
+grep "processes" /proc/stat
+
+ps -C bash
+cat /proc/pid/status | grep ctxt
+
+
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+int main(){
+time_t now;
+time(&now);
+printf("Cureent system time:%s",ctime(&now));
+fflush(stdout);
+for(long i=0;i<1000000;i++){}
+getpid();
+slepp(20);
+return 0;
+}
+./time_display &
+./time_display
+gcc time_displaawk '{print "utime(user mode): "$14, "\nstime (kernel mode): "$15}' /proc/pid you get at firts step/stat
