@@ -1,0 +1,176 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define FRAMES 3
+#define MAX_PAGES 50
+#define PAGE_RANGE 10
+
+int find(int frames[], int page) {
+    for (int i = 0; i < FRAMES; i++)
+        if (frames[i] == page)
+            return i;
+    return -1;
+}
+
+void printResult(char name[], int hits, int misses, int n) {
+    printf("\nAlgorithm: %s\n", name);
+    printf("Total Hits   = %d\n", hits);
+    printf("Total Misses = %d\n", misses);
+    printf("Hit Rate     = %.2f%%\n", (hits * 100.0) / n);
+}
+
+/* FIFO */
+void simulateFIFO(int pages[], int n) {
+    int frames[FRAMES] = {-1, -1, -1};
+    int pointer = 0, hits = 0, misses = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (find(frames, pages[i]) != -1)
+            hits++;
+        else {
+            frames[pointer] = pages[i];
+            pointer = (pointer + 1) % FRAMES;
+            misses++;
+        }
+    }
+
+    printResult("FIFO", hits, misses, n);
+}
+
+/* LRU */
+void simulateLRU(int pages[], int n) {
+    int frames[FRAMES] = {-1, -1, -1};
+    int recent[FRAMES] = {0};
+    int hits = 0, misses = 0, time = 0;
+
+    for (int i = 0; i < n; i++) {
+        time++;
+        int pos = find(frames, pages[i]);
+
+        if (pos != -1) {
+            hits++;
+            recent[pos] = time;
+        } else {
+            int lru = 0;
+            for (int j = 1; j < FRAMES; j++)
+                if (recent[j] < recent[lru])
+                    lru = j;
+
+            frames[lru] = pages[i];
+            recent[lru] = time;
+            misses++;
+        }
+    }
+
+    printResult("LRU", hits, misses, n);
+}
+
+/* LFU */
+void simulateLFU(int pages[], int n) {
+    int frames[FRAMES] = {-1, -1, -1};
+    int freq[FRAMES] = {0};
+    int hits = 0, misses = 0;
+
+    for (int i = 0; i < n; i++) {
+        int pos = find(frames, pages[i]);
+
+        if (pos != -1) {
+            hits++;
+            freq[pos]++;
+        } else {
+            int lfu = 0;
+            for (int j = 1; j < FRAMES; j++)
+                if (freq[j] < freq[lfu])
+                    lfu = j;
+
+            frames[lfu] = pages[i];
+            freq[lfu] = 1;
+            misses++;
+        }
+    }
+
+    printResult("LFU", hits, misses, n);
+}
+
+/* Random */
+void simulateRandom(int pages[], int n) {
+    int frames[FRAMES] = {-1, -1, -1};
+    int hits = 0, misses = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (find(frames, pages[i]) != -1)
+            hits++;
+        else {
+            int r = rand() % FRAMES;
+            frames[r] = pages[i];
+            misses++;
+        }
+    }
+
+    printResult("Random", hits, misses, n);
+}
+
+/* Optimal */
+void simulateOptimal(int pages[], int n) {
+    int frames[FRAMES] = {-1, -1, -1};
+    int hits = 0, misses = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (find(frames, pages[i]) != -1) {
+            hits++;
+        } else {
+            int farthest = i, pos = -1;
+
+            for (int j = 0; j < FRAMES; j++) {
+                int k;
+                for (k = i + 1; k < n; k++)
+                    if (frames[j] == pages[k])
+                        break;
+
+                if (k == n) {
+                    pos = j;
+                    break;
+                }
+
+                if (k > farthest) {
+                    farthest = k;
+                    pos = j;
+                }
+            }
+
+            if (pos == -1)
+                pos = 0;
+
+            frames[pos] = pages[i];
+            misses++;
+        }
+    }
+
+    printResult("Optimal", hits, misses, n);
+}
+
+int main() {
+    int pages[MAX_PAGES];
+    int n;
+
+    printf("Enter length of  page reference: ");
+    scanf("%d", &n);
+
+    srand(time(NULL));
+
+    printf("\nGenerated Page Reference String:\n");
+    for (int i = 0; i < n; i++) {
+        pages[i] = rand() % PAGE_RANGE;
+        printf("%d ", pages[i]);
+    }
+    printf("\n");
+
+    simulateFIFO(pages, n);
+    simulateLRU(pages, n);
+    simulateLFU(pages, n);
+    simulateRandom(pages, n);
+    simulateOptimal(pages, n);
+
+    return 0;
+}
