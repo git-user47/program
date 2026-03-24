@@ -1,0 +1,59 @@
+#include <stdio.h>
+
+int main() {
+    int n, f, i, j, k, pos, faults = 0;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+
+    int pages[n];
+    printf("Enter page reference string: ");
+    for(i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+
+    printf("Enter number of frames: ");
+    scanf("%d", &f);
+
+    int frame[f], time[f], counter = 0;
+
+    // Initialize frames
+    for(i = 0; i < f; i++) {
+        frame[i] = -1;
+        time[i] = 0;
+    }
+
+    // LRU Logic
+    for(i = 0; i < n; i++) {
+        int found = 0;
+
+        // Check if page is already in frame
+        for(j = 0; j < f; j++) {
+            if(frame[j] == pages[i]) {
+                counter++;
+                time[j] = counter; // update recent use
+                found = 1;
+                break;
+            }
+        }
+
+        // If page not found
+        if(!found) {
+            pos = 0;
+
+            // Find least recently used
+            for(j = 1; j < f; j++) {
+                if(time[j] < time[pos])
+                    pos = j;
+            }
+
+            frame[pos] = pages[i];
+            counter++;
+            time[pos] = counter;
+            faults++;
+        }
+    }
+
+    printf("Total Page Faults = %d\n", faults);
+
+    return 0;
+}
